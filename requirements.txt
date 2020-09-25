@@ -1,0 +1,4 @@
+sanic==19.12.2
+databases[sqlite]==0.2.6
+# requests==2.22.0
+# pandas==0.25.3
