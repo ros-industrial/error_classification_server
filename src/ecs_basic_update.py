@@ -5,6 +5,7 @@ A python script to pull the latest data from centralized ECS to the local file d
 import os
 import sys
 import time
+import json
 import sqlite3
 import requests
 import pandas as pd
@@ -76,9 +77,8 @@ def update_db():
     ecs_db_dump = pd.DataFrame(json_data["error_classification"])
     ert_db_dump = pd.DataFrame(json_data["error_report"])
     ri_db_dump = pd.DataFrame(json_data["robot_info"])
-    ecs_db_dump["error_type"] = ecs_db_dump["error_type"].astype(str)
-    ecs_db_dump["error_resolution"] = ecs_db_dump["error_resolution"].astype(
-        str)
+    ecs_db_dump["error_type"] = ecs_db_dump["error_type"].apply(lambda x: json.dumps(x))
+    ecs_db_dump["error_resolution"] = ecs_db_dump["error_resolution"].apply(lambda x: json.dumps(x))
 
     # Get only necessary columns for db population
     ecs_db_dump = pd.DataFrame(
@@ -86,7 +86,8 @@ def update_db():
                               'cognicept_error_code', 'compounding_flag',
                               'error_id', 'error_module', 'error_resolution',
                               'error_source', 'error_text', 'error_type',
-                              'error_uuid', 'robot_type', 'severity'])
+                              'error_uuid', 'robot_type', 'severity',
+                              'error_description'])
     ert_db_dump = pd.DataFrame(
         ert_db_dump, columns=['compounding_flag', 'error_code', 'error_description',
                               'error_id', 'error_level', 'error_module',
@@ -122,7 +123,8 @@ def update_db():
                          error_type json,
                          error_uuid text,
                          robot_type integer,
-                         severity text)''',
+                         severity text,
+                         error_description text)''',
                     '''CREATE TABLE error_report
                         (compounding_flag booleantext,
                          error_code text,
@@ -148,7 +150,7 @@ def update_db():
 
                 # Execute parameterized sql commands - INSERT
                 cur.executemany(
-                    'INSERT INTO error_classification VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)',
+                    'INSERT INTO error_classification VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
                     ecs_db_dump.values.tolist())
 
                 cur.executemany(
