@@ -108,7 +108,7 @@ async def get_ecs_errordata(request):
 
     # Set query
     query = """
-            SELECT sub_query.cognicept_error_code, sub_query.severity, sub_query.compounding_flag, sub_query.error_module, sub_query.error_source, sub_query.error_text
+            SELECT sub_query.cognicept_error_code, cast(sub_query.severity as integer) as 'severity', sub_query.compounding_flag, sub_query.error_module, sub_query.error_source, sub_query.error_text, sub_query.error_resolution, sub_query.error_description
             FROM (error_classification EC
             INNER JOIN robot_info RI ON EC.robot_type = RI.robot_id) sub_query
             WHERE :robot_model LIKE sub_query.robot_model COLLATE NOCASE
